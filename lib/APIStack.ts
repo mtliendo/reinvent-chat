@@ -12,7 +12,12 @@ import {
 import { UserPool } from 'aws-cdk-lib/aws-cognito'
 import * as fs from 'fs'
 import { CfnResolver } from 'aws-cdk-lib/aws-appsync'
-import { createFunction, createPipeline } from './graphql/utils'
+import {
+	createFunction,
+	createPipeline,
+	expressPipeline,
+	GRAPHQL_TYPENAME,
+} from './graphql/utils'
 
 interface APIStackProps extends StackProps {
 	userpool: UserPool
@@ -145,6 +150,15 @@ export class APIStack extends Stack {
 			pipelineConfig: [createRoomFunction],
 		})
 
+		const sampleExpress = expressPipeline({
+			scope: this,
+			api,
+			code: 'some_file_path',
+			dataSource: roomTableDataSource,
+			fieldName: 'createSample',
+			typeName: GRAPHQL_TYPENAME.Mutation,
+			pipelineDataSource: roomTableDataSource,
+		})
 		new CfnOutput(this, 'GraphQLAPIURL', {
 			value: api.graphqlUrl,
 		})

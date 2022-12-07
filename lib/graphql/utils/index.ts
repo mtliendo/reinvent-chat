@@ -1,6 +1,7 @@
 import {
 	AppsyncFunction,
 	BaseDataSource,
+	EnumType,
 	IAppsyncFunction,
 	IGraphqlApi,
 	NoneDataSource,
@@ -9,7 +10,7 @@ import {
 import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync'
 import { Construct } from 'constructs'
 
-type CreateFunctionProps = {
+export type CreateFunctionProps = {
 	scope: Construct
 	name: string
 	api: IGraphqlApi
@@ -17,7 +18,7 @@ type CreateFunctionProps = {
 	code: string
 }
 
-type CreatePipelineProps = {
+export type CreatePipelineProps = {
 	scope: Construct
 	api: IGraphqlApi
 	dataSource: BaseDataSource
@@ -28,16 +29,22 @@ type CreatePipelineProps = {
 	pipelineConfig: IAppsyncFunction[]
 }
 
-type ExpressPipelineProps = {
+export type ExpressPipelineProps = {
 	scope: Construct
 	functionName?: string
 	fieldName: string
-	typeName: string
+	typeName: GRAPHQL_TYPENAME
 	api: IGraphqlApi
 	code: string
 	dataSource: BaseDataSource
 	pipelineId?: string
 	pipelineDataSource: NoneDataSource
+}
+
+export enum GRAPHQL_TYPENAME {
+	Query = 'Query',
+	Mutation = 'Mutation',
+	Subscription = 'Subscription',
 }
 
 // Note: The `id` field is set to be the same as the `name`.
