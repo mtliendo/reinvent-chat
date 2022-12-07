@@ -1,21 +1,34 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { ReinventChatStack } from '../lib/reinvent-chat-stack';
+import 'source-map-support/register'
+import * as cdk from 'aws-cdk-lib'
+import { AuthStack } from '../lib/AuthStack'
+import { FileStorageStack } from '../lib/fileStorageStack'
+import { DatabaseStack } from '../lib/DatabaseStack'
+import { IdentityStack } from '../lib/IdentityStack'
+import { APIStack } from '../lib/APIStack'
+import { FrontendHostingStack } from '../lib/FrontendHostingStack'
 
-const app = new cdk.App();
-new ReinventChatStack(app, 'ReinventChatStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
+const app = new cdk.App()
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const authStack = new AuthStack(app, 'AuthStackSamples', {})
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+const identityStack = new IdentityStack(app, 'IdentityStackSamples', {
+	userpool: authStack.userpool,
+	userpoolClient: authStack.userPoolClient,
+})
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-});
+const databaseStack = new DatabaseStack(app, 'DatabaseStackSamples', {})
+
+const apiStack = new APIStack(app, 'AppSyncAPIStackSamples', {
+	userpool: authStack.userpool,
+	roomTable: databaseStack.roomTable,
+	messageTable: databaseStack.messageTable,
+})
+
+const fileStorageStack = new FileStorageStack(app, 'FileStorageStackSamples', {
+	authenticatedRole: identityStack.authenticatedRole,
+	unauthenticatedRole: identityStack.unauthenticatedRole,
+	allowedOrigins: ['http://localhost:3000'],
+})
+
+//add the hosting stack stuff here
