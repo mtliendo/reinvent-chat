@@ -33,18 +33,12 @@ export type ExpressPipelineProps = {
 	scope: Construct
 	functionName?: string
 	fieldName: string
-	typeName: GRAPHQL_TYPENAME
+	typeName: 'Query' | 'Mutation' | 'Subscription'
 	api: IGraphqlApi
 	code: string
 	dataSource: BaseDataSource
 	pipelineId?: string
 	pipelineDataSource: NoneDataSource
-}
-
-export enum GRAPHQL_TYPENAME {
-	Query = 'Query',
-	Mutation = 'Mutation',
-	Subscription = 'Subscription',
 }
 
 // Note: The `id` field is set to be the same as the `name`.
@@ -59,10 +53,11 @@ export function createFunction(config: CreateFunctionProps) {
 	const cfnCreateRoomFunc = createdFunction.node
 		.defaultChild as CfnFunctionConfiguration
 
-	// Escape hatch to access CloudFormation template
-	cfnCreateRoomFunc.addPropertyOverride('Runtime.Name', 'APPSYNC_JS')
-	cfnCreateRoomFunc.addOverride('Runtime.RuntimeVersion', '1.0.0')
-	cfnCreateRoomFunc.addOverride('Code', config.code)
+	cfnCreateRoomFunc.runtime = {
+		name: 'APPSYNC_JS',
+		runtimeVersion: '1.0.0',
+	}
+	cfnCreateRoomFunc.code = config.code
 
 	return createdFunction
 }
@@ -77,10 +72,11 @@ export function createPipeline(config: CreatePipelineProps) {
 	})
 
 	const cfnPipeline = pipelineResolver.node.defaultChild as CfnResolver
-
-	cfnPipeline.addPropertyOverride('Runtime.Name', 'APPSYNC_JS')
-	cfnPipeline.addPropertyOverride('Runtime.RuntimeVersion', '1.0.0')
-	cfnPipeline.addPropertyOverride('Runtime.Code', config.code)
+	cfnPipeline.runtime = {
+		name: 'APPSYNC_JS',
+		runtimeVersion: '1.0.0',
+	}
+	cfnPipeline.code = config.code
 
 	return pipelineResolver
 }
@@ -100,10 +96,11 @@ export function expressPipeline(config: ExpressPipelineProps) {
 	const cfnCreateRoomFunc = createdFunction.node
 		.defaultChild as CfnFunctionConfiguration
 
-	// Escape hatch to access CloudFormation template
-	cfnCreateRoomFunc.addPropertyOverride('Runtime.Name', 'APPSYNC_JS')
-	cfnCreateRoomFunc.addOverride('Runtime.RuntimeVersion', '1.0.0')
-	cfnCreateRoomFunc.addOverride('Code', config.code)
+	cfnCreateRoomFunc.runtime = {
+		name: 'APPSYNC_JS',
+		runtimeVersion: '1.0.0',
+	}
+	cfnCreateRoomFunc.code = config.code
 
 	const pipelineResolver = new Resolver(
 		config.scope,
@@ -118,22 +115,21 @@ export function expressPipeline(config: ExpressPipelineProps) {
 	)
 
 	const cfnPipeline = pipelineResolver.node.defaultChild as CfnResolver
+	cfnPipeline.runtime = {
+		name: 'APPSYNC_JS',
+		runtimeVersion: '1.0.0',
+	}
+	cfnPipeline.code = `
+    // The before step
+    export function request() {
+      return {}
+    }
 
-	cfnPipeline.addPropertyOverride('Runtime.Name', 'APPSYNC_JS')
-	cfnPipeline.addPropertyOverride('Runtime.RuntimeVersion', '1.0.0')
-	cfnPipeline.addPropertyOverride(
-		'Runtime.Code',
-		`// The before step
-export function request() {
-	return {}
-}
-
-// The after step
-export function response(ctx) {
-	return ctx.prev.result
-}
+    // The after step
+    export function response(ctx) {
+      return ctx.prev.result
+    }
 `
-	)
 
 	return {
 		function: createdFunction,

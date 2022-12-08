@@ -16,7 +16,6 @@ import {
 	createFunction,
 	createPipeline,
 	expressPipeline,
-	GRAPHQL_TYPENAME,
 } from './graphql/utils'
 
 interface APIStackProps extends StackProps {
@@ -156,7 +155,7 @@ export class APIStack extends Stack {
 			code: 'some_file_path',
 			dataSource: roomTableDataSource,
 			fieldName: 'createSample',
-			typeName: GRAPHQL_TYPENAME.Mutation,
+			typeName: 'Mutation',
 			pipelineDataSource: roomTableDataSource,
 		})
 		new CfnOutput(this, 'GraphQLAPIURL', {
